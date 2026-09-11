@@ -1,2 +1,2 @@
 # Rikursia-10
-Рекурсия негіздері
+index.html
