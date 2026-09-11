@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бағдарламалаудағы Рекурсия - Интерактивті курс</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --accent: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding-bottom: 50px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4f46e5, #06b6d4);
+            color: white;
+            text-align: center;
+            padding: 45px 20px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        header h1 { font-size: 2.2rem; margin-bottom: 10px; }
+        header p { font-size: 1.1rem; opacity: 0.9; }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav button {
+            background: none;
+            border: none;
+            padding: 15px 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        nav button:hover, nav button.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 8px;
+        }
+
+        .badge-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: #eff6ff;
+            border-left: 4px solid var(--primary);
+            padding: 12px 15px;
+            border-radius: 4px;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .badge strong { color: var(--primary); display: block; margin-bottom: 5px; }
+
+        pre {
+            background: #1e293b;
+            color: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 15px 0;
+        }
+
+        .sim-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        input[type="number"] {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            width: 80px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .btn:hover { background: var(--primary-hover); }
+
+        .stack-box {
+            border: 2px dashed var(--primary);
+            min-height: 150px;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 8px;
+            background: #f1f5f9;
+        }
+
+        .stack-item {
+            background: var(--primary);
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            animation: slideIn 0.3s forwards;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .options label {
+            display: block;
+            background: #f8fafc;
+            padding: 10px 15px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-top: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .options label:hover {
+            background: #e2e8f0;
+        }
+
+        .options input { margin-right: 10px; }
+
+        .result-box {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            display: none;
+            font-weight: bold;
+        }
+
+        .correct { background: #d1fae5; color: #065f46; display: block; }
+        .wrong { background: #fee2e2; color: #991b1b; display: block; }
+
+        .accordion-btn {
+            width: 100%;
+            text-align: left;
+            background: #f1f5f9;
+            border: none;
+            padding: 12px 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .accordion-content {
+            display: none;
+            padding: 15px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 0 0 6px 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Рекурсия негіздері</h1>
+        <p>Интерактивті оқу материалы және практикалық тапсырмалар</p>
+    </header>
+
+    <nav>
+        <button class="active" onclick="openTab('theory')">1. Теория</button>
+        <button onclick="openTab('simulator')">2. Симулятор</button>
+        <button onclick="openTab('practice')">3. Код талдау</button>
+        <button onclick="openTab('quiz')">4. Өзіндік жұмыс</button>
+    </nav>
+
+    <div class="container">
+
+        <!-- 1. ТЕОРИЯ БӨЛІМІ -->
+        <div id="theory" class="tab-content active">
+            <div class="card">
+                <h2>Негізгі ұғымдар</h2>
+                <p><strong>Рекурсия</strong> — функцияның өз-өзін шақыру процесі.</p>
+                
+                <div class="badge-container">
+                    <div class="badge">
+                        <strong>1. Тоқтау шарты (Base case)</strong>
+                        Рекурсияның шексіз жалғаспауы үшін қойылатын шарт. Бұл орындалғанда функция өзін шақыруды тоқтатып, нақты мән қайтарады.
+                    </div>
+                    <div class="badge">
+                        <strong>2. Рекурсивті қадам (Recursive step)</strong>
+                        Функцияның өзін кішірейтілген параметрмен қайта шақыруы.
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Рекурсияны түсіну (Матрешка аналогиясы)</h2>
+                <p>Рекурсияны түсінудің ең қарапайым мысалы — <strong>Матрешка</strong> ойыншығы. Әрбір матрешканың ішінде одан кішірек матрешка болады. Ең соңғы, ашылмайтын ең кішкентай матрешка — бұл <em>Тоқтау шарты (Base case)</em>.</p>
+            </div>
+
+            <div class="card">
+                <h2>Факториалды есептеу мысалы</h2>
+                <p>Математикада $n!$ саны 1-ден $n$-ге дейінгі барлық сандардың көбейтіндісі болып табылады (Мысалы: $3! = 3 \times 2 \times 1 = 6$).</p>
+                
+                <pre><code>def factorial(n):
+    if n == 1:
+        return 1  # Тоқтау шарты
+    else:
+        return n * factorial(n - 1)  # Рекурсивті қадам</code></pre>
+            </div>
+        </div>
+
+        <!-- 2. СИМУЛЯТОР БӨЛІМІ -->
+        <div id="simulator" class="tab-content">
+            <div class="card">
+                <h2>Рекурсивті Стек (Call Stack) Визуализациясы</h2>
+                <p>Мәнді енгізіп, «Орындау» батырмасын басыңыз. Функцияның қалай шақырылатынын және кері қайту процесін көріңіз.</p>
+                <br>
+                <div class="sim-controls">
+                    <label>Factorial(n): </label>
+                    <input type="number" id="factInput" value="3" min="1" max="5">
+                    <button class="btn" onclick="runFactorialSim()">Орындау</button>
+                </div>
+
+                <h3>Вызовтар стегі (Call Stack):</h3>
+                <div class="stack-box" id="stackContainer">
+                    <div style="text-align: center; color: var(--text-light); width: 100%;">Стек бос</div>
+                </div>
+                <p id="simResult" style="margin-top: 15px; font-weight: bold; color: var(--primary);"></p>
+            </div>
+        </div>
+
+        <!-- 3. КОД ТАЛДАУ (ПРАКТИКА) -->
+        <div id="practice" class="tab-content">
+            <div class="card">
+                <h2>Кодты талдау және нәтижесін анықтау</h2>
+                <p>Төменде берілген тапсырмаларды оқып, «Жауапты көрсету» батырмасы арқылы өз жауабыңызды тексеріңіз.</p>
+
+                <!-- 1-есеп -->
+                <button class="accordion-btn" onclick="toggleAccordion('acc1')">
+                    1. Сандардың қосындысы (sum_numbers) <span>▼</span>
+                </button>
+                <div id="acc1" class="accordion-content">
+                    <pre><code>def sum_numbers(n):
+    if n == 1:
+        return 1
+    else:
+        return n + sum_numbers(n - 1)
+
+# Сұрақ: sum_numbers(4) не қайтарады?</code></pre>
+                    <p><strong>Жауабы:</strong> 10</p>
+                    <p><em>Түсіндірме:</em> 4 + 3 + 2 + 1 = 10</p>
+                </div>
+
+                <!-- 2-есеп -->
+                <button class="accordion-btn" onclick="toggleAccordion('acc2')">
+                    2. Дәрежелеу функциясы (power) <span>▼</span>
+                </button>
+                <div id="acc2" class="accordion-content">
+                    <pre><code>def power(a, n):
+    if n == 0:
+        return 1
+    else:
+        return a * power(a, n - 1)
+
+# Сұрақ: power(2, 3) нәтижесі?</code></pre>
+                    <p><strong>Жауабы:</strong> 8</p>
+                    <p><em>Түсіндірме:</em> 2 * 2 * 2 * 1 = 8</p>
+                </div>
+
+                <!-- 3-есеп -->
+                <button class="accordion-btn" onclick="toggleAccordion('acc3')">
+                    3. Жолды кері айналдыру (reverse_str) <span>▼</span>
+                </button>
+                <div id="acc3" class="accordion-content">
+                    <pre><code>def reverse_str(s):
+    if len(s) == 0:
+        return s
+    else:
+        return reverse_str(s[1:]) + s[0]
+
+# Сұрақ: reverse_str("abc") нәтижесі?</code></pre>
+                    <p><strong>Жауабы:</strong> "cba"</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. ӨЗІНДІК ЖҰМЫС (EXIT TICKET) -->
+        <div id="quiz" class="tab-content">
+            <div class="card">
+                <h2>Рекурсия бойынша өзіндік жұмыс (Exit Ticket)</h2>
+                
+                <form id="quizForm">
+                    <div class="question">
+                        <p><strong>1. Рекурсивті функцияда «тоқтау шарты» (base case) не үшін қажет?</strong></p>
+                        <div class="options">
+                            <label><input type="radio" name="q1" value="A"> А) Функцияның тезірек жұмыс істеуі үшін</label>
+                            <label><input type="radio" name="q1" value="B"> В) Рекурсияның шексіз қайталана бермеуі және бағдарламаның тоқтауы үшін</label>
+                            <label><input type="radio" name="q1" value="C"> С) Айнымалылардың мәнін нөлге теңестіру үшін</label>
+                        </div>
+                    </div>
+
+                    <div class="question">
+                        <p><strong>2. Төмендегі кодта қандай қате бар?</strong></p>
+                        <pre><code>def count_down(n):
+    print(n)
+    return count_down(n - 1)</code></pre>
+                        <div class="options">
+                            <label><input type="radio" name="q2" value="A"> А) Синтаксистік қате бар</label>
+                            <label><input type="radio" name="q2" value="B"> В) Тоқтау шарты (Base case) жоқ, шексіз рекурсия тудырады</label>
+                            <label><input type="radio" name="q2" value="C"> С) Функция ештеңе басып шығармайды</label>
+                        </div>
+                    </div>
+
+                    <div class="question">
+                        <p><strong>3. mystery(3) шақыруының соңғы нәтижесі неге тең?</strong></p>
+                        <pre><code>def mystery(n):
+    if n == 1:
+        return 1
+    else:
+        return n + mystery(n - 1)</code></pre>
+                        <div class="options">
+                            <label><input type="radio" name="q3" value="A"> А) 3</label>
+                            <label><input type="radio" name="q3" value="B"> В) 5</label>
+                            <label><input type="radio" name="q3" value="C"> С) 6</label>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn" onclick="checkQuiz()">Жауаптарды тексеру</button>
+                </form>
+
+                <div id="quizResult" class="result-box"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Tab switching logic
+        function openTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // Accordion functionality
+        function toggleAccordion(id) {
+            const content = document.getElementById(id);
+            if (content.style.display === "block") {
+                content.style.display = "none";
+            } else {
+                content.style.display = "block";
+            }
+        }
+
+        // Call Stack Simulator
+        async function runFactorialSim() {
+            const n = parseInt(document.getElementById('factInput').value);
+            const container = document.getElementById('stackContainer');
+            const resultText = document.getElementById('simResult');
+            
+            if (isNaN(n) || n < 1 || n > 5) {
+                alert("Өтініш, 1 мен 5 арасындағы санды таңдаңыз.");
+                return;
+            }
+
+            container.innerHTML = '';
+            resultText.innerText = 'Орындалуда...';
+
+            // Push Phase
+            for (let i = n; i >= 1; i--) {
+                await new Promise(r => setTimeout(r, 800));
+                const item = document.createElement('div');
+                item.className = 'stack-item';
+                item.id = `stack-${i}`;
+                item.innerText = i === 1 ? `factorial(1) -> кайтарады: 1 [Base Case]` : `factorial(${i}) -> күтеді: ${i} * factorial(${i-1})`;
+                container.prepend(item);
+            }
+
+            // Pop / Calculation Phase
+            let currentVal = 1;
+            for (let i = 1; i <= n; i++) {
+                await new Promise(r => setTimeout(r, 1000));
+                const item = document.getElementById(`stack-${i}`);
+                if (i > 1) currentVal *= i;
+                item.style.background = '#10b981';
+                item.innerText = `factorial(${i}) орындалды = ${currentVal}`;
+            }
+
+            resultText.innerText = `Соңғы Нәтиже: factorial(${n}) = ${currentVal}`;
+        }
+
+        // Quiz Logic
+        function checkQuiz() {
+            const answers = { q1: 'B', q2: 'B', q3: 'C' };
+            let score = 0;
+            const form = document.getElementById('quizForm');
+            
+            if (form.q1.value === answers.q1) score++;
+            if (form.q2.value === answers.q2) score++;
+            if (form.q3.value === answers.q3) score++;
+
+            const resultBox = document.getElementById('quizResult');
+            if (score === 3) {
+                resultBox.className = "result-box correct";
+                resultBox.innerText = `Тамаша! Сіз барлық сұраққа дұрыс жауап бердіңіз (${score}/3).`;
+            } else {
+                resultBox.className = "result-box wrong";
+                resultBox.innerText = `Нәтиже: ${score}/3. Материалды қайта оқып шығуды ұсынамыз.`;
+            }
+        }
+    </script>
+</body>
+</html>
